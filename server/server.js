@@ -174,10 +174,10 @@ async function createExpressApp()
 			res.status(200).json(data);
 		});
 	expressApp.get(
-	'/rooms/:roomId/chensong', (req, res) =>
+	'/rooms/:roomId/AllDataProducers', (req, res) =>
 	{
 		//logger.error('getproducedata  =============/rooms/:roomId/getproducedata');
-		
+		 
 
 		const data = req.room.getAllPeerProduceData();
 
@@ -224,9 +224,11 @@ async function createExpressApp()
 	expressApp.delete(
 		'/rooms/:roomId/broadcasters/:broadcasterId', (req, res) =>
 		{
-			logger.error('=============/rooms/:roomId/broadcasters/:broadcasterId');
+			logger.error('=============++++++++++++++++++++++++++/rooms/:roomId/broadcasters/:broadcasterId');
 			logger.info('req =' + req.body);
 			const { broadcasterId } = req.params;
+
+
 
 			req.room.deleteBroadcaster({ broadcasterId });
 
@@ -238,10 +240,19 @@ async function createExpressApp()
 		{
 			logger.error('delete =============/rooms/:roomId/broadcasters/:broadcasterId');
 			const { broadcasterId } = req.params;
+			//logger.error('broadcasterid = ' +  broadcasterid + '^_^ !!!');
+			
+			try
+			{
+				req.room.deleteBroadcaster({ broadcasterId });
 
-			req.room.deleteBroadcaster({ broadcasterId });
-
-			res.status(200).send('broadcaster deleted');
+				res.status(200).send();
+			}
+			catch (error)
+			{
+				next("broadcaster delete error !!!!");
+			}
+			
 
 			//res.status(200).json(data);
 		});
