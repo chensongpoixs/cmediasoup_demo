@@ -174,7 +174,7 @@ async function createExpressApp()
 			res.status(200).json(data);
 		});
 	expressApp.get(
-	'/rooms/:roomId/chensong', (req, res) =>
+	'/rooms/:roomId/AllDataProducers', (req, res) =>
 	{
 		//logger.error('getproducedata  =============/rooms/:roomId/getproducedata');
 		

@@ -1860,12 +1860,12 @@ export default class RoomClient
 
 		if (!this._chatDataProducer)
 		{
-			store.dispatch(requestActions.notify(
+			/*store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : 'No chat DataProducer'
 				}));
-
+*/
 			return;
 		}
 
