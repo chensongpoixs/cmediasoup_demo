@@ -2485,13 +2485,14 @@ export default class RoomClient
 				if (!devicesCookie || devicesCookie.webcamEnabled || this._externalVideo)
 					this.enableWebcam();
 				*/
+				this.enableChatDataProducer();
 				logger.debug(' _sendTransport ----> ^_^ -> connectionstatechange ---->   , <-------->');
 				this._sendTransport.on('connectionstatechange', (connectionState) =>
 				{
 					logger.debug('%%%% ok ^_^ connectionstatechange ---->  ' + connectionState + ' , <-------->');
 					if (connectionState === 'connected')
 					{
-						this.enableChatDataProducer();
+						
 						this.enableBotDataProducer();
 					}
 				});
