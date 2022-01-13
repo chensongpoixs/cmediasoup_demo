@@ -258,7 +258,7 @@ gulp.task('live', gulp.series(
 				{
 					baseDir : OUTPUT_DIR
 				},
-				//https     : config.https.tls,
+				https     : config.https.tls,
 				ghostMode : false,
 				files     : path.join(OUTPUT_DIR, '**', '*')
 			});
@@ -284,7 +284,7 @@ gulp.task('devel', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-			 		//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -302,7 +302,7 @@ gulp.task('devel', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -330,7 +330,7 @@ gulp.task('devel:tcp', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -348,7 +348,7 @@ gulp.task('devel:tcp', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -376,7 +376,7 @@ gulp.task('devel:vp9', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -394,7 +394,7 @@ gulp.task('devel:vp9', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -422,7 +422,7 @@ gulp.task('devel:h264', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},
@@ -440,7 +440,7 @@ gulp.task('devel:h264', gulp.series(
 					{
 						baseDir : OUTPUT_DIR
 					},
-					//https     : config.https.tls,
+					https     : config.https.tls,
 					ghostMode : false,
 					files     : path.join(OUTPUT_DIR, '**', '*')
 				},

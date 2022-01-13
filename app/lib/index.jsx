@@ -98,26 +98,26 @@ async  function scrollFunc(e)
 	{ //第一步：先判断浏览器IE，谷歌滑轮事件    
      if (e.wheelDelta > 0) 
 	 { //当滑轮向上滚动时 
-		action_mouse(4, 0, 0);
-      console.log("滑轮向上滚动"); 
+		action_mouse(4, 0, 0, e.keyCode);
+      //console.log("滑轮向上滚动"); 
      } 
      if (e.wheelDelta < 0) 
 	 { //当滑轮向下滚动时 
-		action_mouse(5, 0, 0);
-      console.log("滑轮向下滚动"); 
+		action_mouse(5, 0, 0, e.keyCode);
+      //console.log("滑轮向下滚动"); 
      } 
     } 
 	else if (e.detail) 
 	{ //Firefox滑轮事件 
      if (e.detail> 0) 
 	 { //当滑轮向上滚动时 
- action_mouse(4, 0, 0);
-      console.log("滑轮向上滚动"); 
+ action_mouse(4, 0, 0, e.keyCode);
+      //console.log("滑轮向上滚动"); 
      } 
      if (e.detail< 0) 
 	 { //当滑轮向下滚动时 
- action_mouse(5, 0, 0);
-      console.log("滑轮向下滚动"); 
+ action_mouse(5, 0, 0, e.keyCode);
+      //console.log("滑轮向下滚动"); 
      } 
     } 
    }
@@ -139,17 +139,20 @@ document.onmouseup = mouseUp;  //注册鼠标松开时事件处理函数
 // p1.onmousemove = this.mouseMove;  //注册鼠标移动时事件处理函数
 document.onclick = mouseClick;  //注册鼠标单击时事件处理函数
 document.onmousewheel = scrollFunc;
+document.onkeydown = keydown;
  //document.ondblclick = this.mouseMove;  //注册鼠标双击时事件处理函数
 }
 
 
-
+async function  keydown(e)
+{
+	 
+	action_mouse(6, 0, 0,  e.keyCode);
+}
 
 async function  mouseMove(e)
 {
-	console.log('==========================');
-	console.log( e);
-	console.log('==========================');
+	
 	 var x,y;
 	 if(!document.all){
 	 
@@ -159,15 +162,13 @@ async function  mouseMove(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	action_mouse(0, x, y);
+	action_mouse(0, x, y, e.keyCode);
 }
 
 // 鼠标移动事件
 async function  mouseClick(e)
 {
-	console.log('==========================');
-	console.log( e);
-	console.log('==========================');
+	
 	 var x,y;
 	 if(!document.all){
 	 
@@ -177,15 +178,13 @@ async function  mouseClick(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	action_mouse(1, x, y);
+	action_mouse(1, x, y, e.keyCode);
 }
 
 
 async function  mouseDown(e)
 {
-	console.log('==========================');
-	console.log( e);
-	console.log('==========================');
+	
 	 var x,y;
 	 if(!document.all){
 	 
@@ -195,15 +194,13 @@ async function  mouseDown(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	action_mouse(2, x, y);
+	action_mouse(2, x, y, e.keyCode);
 }
 
 
 async function  mouseUp(e)
 {
-	console.log('==========================');
-	console.log( e);
-	console.log('==========================');
+	
 	 var x,y;
 	 if(!document.all){
 	 
@@ -213,10 +210,10 @@ async function  mouseUp(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	action_mouse(3, x, y);
+	action_mouse(3, x, y  , e.keyCode);
 }
 
-async function action_mouse(action, wight, height)
+async function action_mouse(action, wight, height, keyvalue)
 {
 	 var move_xy =
 	 {
@@ -224,14 +221,15 @@ async function action_mouse(action, wight, height)
 		 "wight" : wight,
 		 "height": height,
 		 "windowwidth" : window.screen.width,
-		 "windowheight" : window.screen.height
+		 "windowheight" : window.screen.height,
+		 "key": keyvalue
 	 };
 	// var postion = 'x = ' + x + ', y = ' + y +', wight = '+	 document.body.offsetWidth  + ', height = ' + document.body.offsetHeight;
-	 console.log(JSON.stringify(move_xy));
+	// console.log(JSON.stringify(move_xy));
 	 //await this.test();
 	 roomClient.sendMoveMessage(JSON.stringify(move_xy));
 	 
-	 logger.debug('sendMoveMessage() [text:"%s]', move_xy);
+	 //logger.debug('sendMoveMessage() [text:"%s]', move_xy);
 }
 
 async function run()

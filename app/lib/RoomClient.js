@@ -60,6 +60,14 @@ export default class RoomClient
 	 */
 	static init(data)
 	{
+		/**
+		*init 函数，作为类的静态成员来初始化store，该函数在app/lib/index.jsx中被调用，将store赋给当前window对象并初始化，这些js文件最后合而为一被用于房间页面的js依赖。
+
+导致store状态改变的action 事件描述定义在 app/lib/redux下，而与之对应的改变store的reducer纯函数定义在 app/lib/reducers目录下，STATE.md正是当前所有状态的展示。
+
+然后在RoomClient中用store.dispatch()函数调用相关action改变store状态树，例如：
+		*
+		*/
 		store = data.store;
 	}
 
@@ -809,6 +817,7 @@ export default class RoomClient
 
 	async enableMic()
 	{
+		return;
 		logger.debug('enableMic()');
 
 		if (this._micProducer)
@@ -825,13 +834,15 @@ export default class RoomClient
 
 		try
 		{
+			
 			if (!this._externalVideo)
 			{
 				logger.debug('enableMic() | calling getUserMedia()');
-
+				 
 				const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
 				track = stream.getAudioTracks()[0];
+				 
 			}
 			else
 			{
@@ -1523,6 +1534,7 @@ export default class RoomClient
 
 	async disableAudioOnly()
 	{
+		return;
 		logger.debug('disableAudioOnly()');
 
 		store.dispatch(
@@ -1718,7 +1730,9 @@ export default class RoomClient
 		logger.debug('enableChatDataProducer()');
 
 		if (!this._useDataChannel)
+		{
 			return;
+		}
 
 		// NOTE: Should enable this code but it's useful for testing.
 		// if (this._chatDataProducer)
@@ -1913,7 +1927,7 @@ export default class RoomClient
 	}
 	async sendMoveMessage(text)
 	{
-		logger.debug('sendMoveMessage() [text:"%s]', text);
+		//logger.debug('sendMoveMessage() [text:"%s]', text);
 
 		if (!this._chatDataProducer)
 		{
@@ -2231,7 +2245,7 @@ export default class RoomClient
 
 	async _joinRoom()
 	{
-		logger.debug('_joinRoom()');
+		logger.debug('_joinRoom() this._forceTcp = ' + this._forceTcp + ', _produce = ' + this._produce + ', _useDataChannel = ' + this._useDataChannel);
 
 		try
 		{
@@ -2249,14 +2263,14 @@ export default class RoomClient
 			//
 			// Just get access to the mic and DO NOT close the mic track for a while.
 			// Super hack!
-			{
+			/*{
 				const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 				const audioTrack = stream.getAudioTracks()[0];
 
 				audioTrack.enabled = false;
 
 				setTimeout(() => audioTrack.stop(), 120000);
-			}
+			}*/
 			// Create mediasoup Transport for sending (unless we don't want to produce).
 			if (this._produce)
 			{
@@ -2278,7 +2292,8 @@ export default class RoomClient
 					dtlsParameters,
 					sctpParameters
 				} = transportInfo;
-
+				// 进行 new peerconnect 对象了  是不是对webrtc东西熟悉起来鸭 
+				logger.debug('create send transport ---> ');
 				this._sendTransport = this._mediasoupDevice.createSendTransport(
 					{
 						id,
@@ -2291,10 +2306,12 @@ export default class RoomClient
 						additionalSettings 	   :
 							{ encodedInsertableStreams: this._e2eKey && e2e.isSupported() }
 					});
-				// 创建offer 
+				// 创建offer -> ICE 过后回调 -->  这边我非常疑问的鸭  ICE 是吗？ 有点懵逼了
+				logger.debug('send transport on ---> ');
 				this._sendTransport.on(
 					'connect', ({ dtlsParameters }, callback, errback) => // eslint-disable-line no-shadow
 					{
+						logger.debug('send transport connectWebRtcTransport ^_^ !!! ---> ');
 						this._protoo.request(
 							'connectWebRtcTransport',
 							{
@@ -2304,8 +2321,8 @@ export default class RoomClient
 							.then(callback)
 							.catch(errback);
 					});
-
-				this._sendTransport.on(
+				// 什么地方回调这个方法鸭 
+				/*this._sendTransport.on(
 					'produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
 					{
 						try
@@ -2326,8 +2343,8 @@ export default class RoomClient
 						{
 							errback(error);
 						}
-					});
-
+					});*/
+				logger.debug('send _sendTransport on producedata ---> ^_^ !!! ---> ');
 				this._sendTransport.on('producedata', async (
 					{
 						sctpStreamParameters,
@@ -2346,6 +2363,7 @@ export default class RoomClient
 					try
 					{
 						// eslint-disable-next-line no-shadow
+						logger.debug('_protoo.request produceData ---> ^_^ !!! ---> ');
 						const { id } = await this._protoo.request(
 							'produceData',
 							{
@@ -2452,21 +2470,25 @@ export default class RoomClient
 			if (this._produce)
 			{
 				// Set our media capabilities.
+				/*
 				store.dispatch(stateActions.setMediaCapabilities(
 					{
 						canSendMic    : this._mediasoupDevice.canProduce('audio'),
 						canSendWebcam : this._mediasoupDevice.canProduce('video')
 					}));
+				*/
 
-				this.enableMic();
-
+				//this.enableMic();
+				/*
 				const devicesCookie = cookiesManager.getDevices();
 
 				if (!devicesCookie || devicesCookie.webcamEnabled || this._externalVideo)
 					this.enableWebcam();
-
+				*/
+				logger.debug(' _sendTransport ----> ^_^ -> connectionstatechange ---->   , <-------->');
 				this._sendTransport.on('connectionstatechange', (connectionState) =>
 				{
+					logger.debug('%%%% ok ^_^ connectionstatechange ---->  ' + connectionState + ' , <-------->');
 					if (connectionState === 'connected')
 					{
 						this.enableChatDataProducer();
@@ -2506,7 +2528,7 @@ export default class RoomClient
 		this._webcams = new Map();
 
 		logger.debug('_updateWebcams() | calling enumerateDevices()');
-
+		/*
 		const devices = await navigator.mediaDevices.enumerateDevices();
 
 		for (const device of devices)
@@ -2515,7 +2537,7 @@ export default class RoomClient
 				continue;
 
 			this._webcams.set(device.deviceId, device);
-		}
+		}*/
 
 		const array = Array.from(this._webcams.values());
 		const len = array.length;
