@@ -80,9 +80,9 @@ document.onclick = mouseMove;  //注册鼠标单击时事件处理函数
 // 鼠标移动事件
 async function  mouseMove(e)
 {
-	console.log('==========================');
-	console.log( e);
-	console.log('==========================');
+	//console.log('==========================');
+	//console.log( e);
+	//console.log('==========================');
 	 var x,y;
 	 if(!document.all){
 	 
@@ -95,9 +95,20 @@ async function  mouseMove(e)
 	 var postion = 'x = ' + x + ', y = ' + y +', wight = '+	 document.body.offsetWidth  + ', height = ' + document.body.offsetHeight;
 	 console.log(postion);
 	 //await this.test();
+	 // 对方的信息数组获取控件位置的信息的数组
+	 //var a = document.getElementById("test").getElementsByTagName("div"); //peer-container active-speaker
+	 var b = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container");
+	 console.log( b );
+	 var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	 console.log( a );
+	 console.log('offsetLeft = ' + a.offsetLeft);
+	const temp_peers =  document.getElementById('mediasoup-demo-app-container');
+	const temp_peer =  document.getElementById('video');
+	console.log("=================mediasoup-demo-app-container============ temp peers = " + temp_peers.right + ", offsetLeft = " + temp_peers.offsetLeft);
+	console.log("===============video ============== temp peer = " + temp_peer);
 	 roomClient.sendChatMessage(postion);
 	 
-	 logger.debug('sendChatMessage() [text:"%s]', postion);
+	 logger.debug('sendChatMessage() ---[text:"%s]', postion);
 }
 
 async function run()
