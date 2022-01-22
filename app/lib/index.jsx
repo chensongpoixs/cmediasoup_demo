@@ -1,4 +1,4 @@
-import domready from 'domready';
+﻿import domready from 'domready';
 import UrlParse from 'url-parse';
 import React from 'react';
 import { render } from 'react-dom';
@@ -58,6 +58,119 @@ domready(async () =>
 	run();
 });
 
+// Must be kept in sync with PixelStreamingProtocol::EToUE4Msg C++ enum.
+const MessageType = {
+
+    /**********************************************************************/
+
+    /*
+     * Control Messages. Range = 0..49.
+     */
+    IFrameRequest: 0,
+    RequestQualityControl: 1,
+    MaxFpsRequest: 2,
+    AverageBitrateRequest: 3,
+    StartStreaming: 4,
+    StopStreaming: 5,
+    LatencyTest: 6,
+    RequestInitialSettings: 7,
+
+    /**********************************************************************/
+
+    /*
+     * Input Messages. Range = 50..89.
+     */
+
+    // Generic Input Messages. Range = 50..59.
+    UIInteraction: 50,
+    Command: 51,
+
+    // Keyboard Input Message. Range = 60..69.
+    KeyDown: 60,
+    KeyUp: 61,
+    KeyPress: 62,
+
+    // Mouse Input Messages. Range = 70..79.
+    MouseEnter: 70,
+    MouseLeave: 71,
+    MouseDown: 72,
+    MouseUp: 73,
+    MouseMove: 74,
+    MouseWheel: 75,
+
+    // Touch Input Messages. Range = 80..89.
+    TouchStart: 80,
+    TouchEnd: 81,
+    TouchMove: 82,
+
+    // Gamepad Input Messages. Range = 90..99
+    GamepadButtonPressed: 90,
+    GamepadButtonReleased: 91,
+    GamepadAnalog: 92
+
+    /**************************************************************************/
+};
+
+
+
+
+// Must be kept in sync with JavaScriptKeyCodeToFKey C++ array. The index of the
+// entry in the array is the special key code given below.
+const SpecialKeyCodes = {
+    BackSpace: 8,
+    Shift: 16,
+    Control: 17,
+    Alt: 18,
+    RightShift: 253,
+    RightControl: 254,
+    RightAlt: 255
+};
+
+// We want to be able to differentiate between left and right versions of some
+// keys.
+function getKeyCode(e) {
+    if (e.keyCode === SpecialKeyCodes.Shift && e.code === 'ShiftRight') return SpecialKeyCodes.RightShift;
+    else if (e.keyCode === SpecialKeyCodes.Control && e.code === 'ControlRight') return SpecialKeyCodes.RightControl;
+    else if (e.keyCode === SpecialKeyCodes.Alt && e.code === 'AltRight') return SpecialKeyCodes.RightAlt;
+    else return e.keyCode;
+}
+
+
+
+
+
+
+
+
+
+let playerElementClientRect = undefined;
+let normalizeAndQuantizeUnsigned = undefined;
+let normalizeAndQuantizeSigned = undefined;
+var load = 0;
+function setupNormalizeAndQuantize() 
+{
+	let videoElement = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	
+	normalizeAndQuantizeUnsigned = (x, y) => {
+		let normalizedX = x / videoElement.offsetWidth;
+		let normalizedY = (y / videoElement.offsetHeight)  ;
+		return {
+			x: normalizedX * 65535,
+			y: normalizedY * 65535
+		};
+	};
+	// Signed.
+	normalizeAndQuantizeSigned = (x, y) => {
+		let normalizedX = x / videoElement.offsetWidth;
+		let normalizedY = y / videoElement.offsetHeight;
+		return {
+			x: normalizedX * 32767,
+			y: normalizedY * 32767
+		};
+	};
+	load = 1;
+}
+
 
 function initMouseMove()
 {
@@ -66,20 +179,412 @@ function initMouseMove()
   document.captureEvents(Event.MOUSEMOVE);
   //document.captureEvents(Event.CLICK);
  }
- document.onmousemove = mouseMove;
+ document.onmousemove = mouseMove; //注册鼠标移动时事件处理函数
  
- //document.onmouseover = this.mouseMove;  //注册鼠标经过时事件处理函数
-//document.onmouseout = this.mouseMove;  //注册鼠标移开时事件处理函数
-//document.onmousedown = this.mouseMove;  //注册鼠标按下时事件处理函数
-//document.onmouseup = this.mouseMove;  //注册鼠标松开时事件处理函数
-// p1.onmousemove = this.mouseMove;  //注册鼠标移动时事件处理函数
-document.onclick = mouseMove;  //注册鼠标单击时事件处理函数
- //document.ondblclick = this.mouseMove;  //注册鼠标双击时事件处理函数
+//document.onmouseover = mouseover;  //注册鼠标经过时事件处理函数
+//document.onmouseout = mouseout;  //注册鼠标移开时事件处理函数
+document.onmousedown = mouseDown;  //注册鼠标按下时事件处理函数
+document.onmouseup = mouseUp;  //注册鼠标松开时事件处理函数
+// p1.onmousemove = this.mouseMove;  
+document.onclick = mouseClick;  //注册鼠标单击时事件处理函数
+document.onmousewheel = scrollFunc;
+document.onkeydown = keydown;
+document.onkeyup = keyup;
+document.ondblclick = dblclick;  //注册鼠标双击时事件处理函数
+document.onkeypress = keypress;
+ document.onmouseenter = mouseenter; // 移入事件。
+ 
+  document.onmouseleave = mouseleave; // 移出事件。
+ /*
+ click：单击事件。
+dblclick：双击事件。
+mousedown：按下鼠标键时触发。
+mouseup：释放按下的鼠标键时触发。
+mousemove：鼠标移动事件。
+mouseover：移入事件。
+mouseout：移出事件。
+mouseenter：移入事件。
+mouseleave：移出事件。
+contextmenu：右键事件。
+ 
+ */
+ 
+}
+
+async function keypress(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	
+	let data = new DataView(new ArrayBuffer(3));
+	data.setUint8(0, MessageType.KeyPress);
+	data.setUint16(1, e.charCode, true);
+	sendInputData(data.buffer);
+	
+}
+async function keyup(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	sendInputData(new Uint8Array([MessageType.KeyUp, getKeyCode(e)]).buffer);
+}
+async function dblclick(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	return;
+	var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	 //console.log('==================================================');
+	action_mouse(0, coord.x, coord.y, e.keyCode);
+	
+}
+async function mouseover(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	 //console.log('==================================================');
+	//action_mouse(0, coord.x, coord.y, e.keyCode);
+}
+
+async function mouseout(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	 //console.log('==================================================');
+	//action_mouse(0, coord.x, coord.y, e.keyCode);
+}
+
+async function mouseenter(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+   let Data = new DataView(new ArrayBuffer(1));
+	Data.setUint8(0, MessageType.MouseEnter);
+	sendInputData(Data.buffer);
+	
+}
+
+
+async function mouseleave(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	let Data = new DataView(new ArrayBuffer(1));
+	Data.setUint8(0, MessageType.MouseLeave);
+	sendInputData(Data.buffer);
+}
+
+async  function scrollFunc(e) 
+{ 
+ 
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	 var x,y;
+	 if(!document.all)
+	 {
+	  x=e.pageX;
+	  y=e.pageY;
+	  
+	 }else{
+	  x=document.body.scrollLeft+event.clientX;
+	  y=document.body.scrollTop+event.clientY;
+	 }
+	 
+	var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	 var clientx = 0;
+	 var clienty = 0;
+	 
+	 if ((x >= a.offsetLeft || x <= (a.offsetWidth + a.offsetLeft)) && ((y >= a.offsetTop ) || (y <= (a.offsetHeight + a.offsetTop))) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+	 }
+	  
+	 let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	
+	 
+    let Data = new DataView(new ArrayBuffer(7));
+    Data.setUint8(0, MessageType.MouseWheel);
+    Data.setInt16(1, e.wheelDelta, true);
+    Data.setUint16(3, coord.x, true);
+    Data.setUint16(5, coord.y, true);
+    sendInputData(Data.buffer);
+	
+}
+
+
+async function  keydown(e)
+{
+	 if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	sendInputData(new Uint8Array([MessageType.KeyDown, getKeyCode(e), e.repeat]).buffer);
+	 
+}
+
+async function  mouseMove(e)
+{
+	
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	//console.log(e);
+	 var x,y;
+	 if(!document.all)
+	 {
+	  x=e.pageX;
+	  y=e.pageY;
+	  //console.log('mouse mouseMove = ');
+	 }else{
+	  x=document.body.scrollLeft+event.clientX;
+	  y=document.body.scrollTop+event.clientY;
+	 }
+	 
+	  var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	 
+	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+    let delta = normalizeAndQuantizeSigned(3, 3);
+    let Data = new DataView(new ArrayBuffer(9));
+    Data.setUint8(0, MessageType.MouseMove);
+    Data.setUint16(1, coord.x, true);
+    Data.setUint16(3, coord.y, true);
+    Data.setInt16(5, delta.x, true);
+    Data.setInt16(7, delta.y, true);
+	//console.log('send data -->>>>> move ');
+    sendInputData(Data.buffer);
 }
 
 // 鼠标移动事件
-async function  mouseMove(e)
+async function  mouseClick(e)
 {
+	//if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	console.log('mouse Click = ' );
+	console.log(e);
+	 var x,y;
+	 if(!document.all){
+	 
+	  x=e.pageX;
+	  y=e.pageY;
+	 }else{
+	  x=document.body.scrollLeft+event.clientX;
+	  y=document.body.scrollTop+event.clientY;
+	 }
+	 
+	  var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	 //console.log('==================================================');
+	action_mouse(0, coord.x, coord.y, e.keyCode);
+}
+
+
+async function  mouseDown(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	 var x,y;
+	 if(!document.all){
+	 
+	  x=e.pageX;
+	  y=e.pageY;
+	 }else{
+	  x=document.body.scrollLeft+event.clientX;
+	  y=document.body.scrollTop+event.clientY;
+	 }
+	
+	 let coord = normalizeAndQuantizeUnsigned(x, y);
+    let Data = new DataView(new ArrayBuffer(6));
+    Data.setUint8(0, MessageType.MouseDown);
+    Data.setUint8(1, e.button);
+    Data.setUint16(2, coord.x, true);
+    Data.setUint16(4, coord.y, true);
+    sendInputData(Data.buffer);
+	 
+}
+
+
+async function  mouseUp(e)
+{
+	if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
+	 var x,y;
+	 if(!document.all){
+	 
+	  x=e.pageX;
+	  y=e.pageY;
+	 }else{
+	  x=document.body.scrollLeft+event.clientX;
+	  y=document.body.scrollTop+event.clientY;
+	 }
+	 let coord = normalizeAndQuantizeUnsigned(x, y);
+    let Data = new DataView(new ArrayBuffer(6));
+    Data.setUint8(0, MessageType.MouseUp);
+    Data.setUint8(1, e.button);
+    Data.setUint16(2, coord.x, true);
+    Data.setUint16(4, coord.y, true);
+   sendInputData(Data.buffer);
+	//roomClient.sendChatMessage(Data.buffer);
+}
+async function sendInputData(data)
+{
+	roomClient.sendChatMessage(data);
+}
+async function action_mouse(action, wight, height, keyvalue)
+{
+	 var move_xy =
+	 {
+		 "event" : action,
+		 "wight" : wight,
+		 "height": height,
+		 "windowwidth" : window.screen.width,
+		 "windowheight" : window.screen.height,
+		 "key": keyvalue
+	 };
+	// var postion = 'x = ' + x + ', y = ' + y +', wight = '+	 document.body.offsetWidth  + ', height = ' + document.body.offsetHeight;
+	// console.log(JSON.stringify(move_xy));
+	 //await this.test();
+	// roomClient.sendMoveMessage(JSON.stringify(move_xy));
+	 
+	 //logger.debug('sendMoveMessage() [text:"%s]', move_xy);
+}
+
+
+// 鼠标移动事件
+async function  old_mouseMove(e)
+{
+	//if (load === 0)
+	{
+		setupNormalizeAndQuantize();
+	}
 	//console.log('==========================');
 	//console.log( e);
 	//console.log('==========================');
@@ -101,7 +606,7 @@ async function  mouseMove(e)
 	 console.log( b );
 	 var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
 	 console.log( a );
-	 console.log('offsetLeft = ' + a.offsetLeft);
+	 console.log('offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
 	const temp_peers =  document.getElementById('mediasoup-demo-app-container');
 	const temp_peer =  document.getElementById('video');
 	console.log("=================mediasoup-demo-app-container============ temp peers = " + temp_peers.right + ", offsetLeft = " + temp_peers.offsetLeft);

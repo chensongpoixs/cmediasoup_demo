@@ -1856,16 +1856,17 @@ export default class RoomClient
 
 	async sendChatMessage(text)
 	{
+		//console.log('send chat --->>>> ^_^ !!!');
 		logger.debug('sendChatMessage() [text:"%s]', text);
 
 		if (!this._chatDataProducer)
 		{
-			/*store.dispatch(requestActions.notify(
+			store.dispatch(requestActions.notify(
 				{
 					type : 'error',
 					text : 'No chat DataProducer'
 				}));
-*/
+
 			return;
 		}
 
