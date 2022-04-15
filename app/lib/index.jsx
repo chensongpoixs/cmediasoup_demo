@@ -97,7 +97,7 @@ const MessageType = {
     MouseUp: 73,
     MouseMove: 74,
     MouseWheel: 75,
-
+	MouseDoubleClick: 76,
     // Touch Input Messages. Range = 80..89.
     TouchStart: 80,
     TouchEnd: 81,
@@ -147,6 +147,7 @@ let playerElementClientRect = undefined;
 let normalizeAndQuantizeUnsigned = undefined;
 let normalizeAndQuantizeSigned = undefined;
 var load = 0;
+var mouse_down = 0;
 function setupNormalizeAndQuantize() 
 {
 	let videoElement = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
@@ -261,8 +262,17 @@ async function dblclick(e)
 		 return;
 	 }
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
-	 //console.log('==================================================');
-	action_mouse(0, coord.x, coord.y, e.keyCode);
+	
+    let delta = normalizeAndQuantizeSigned(3, 3);
+    let Data = new DataView(new ArrayBuffer(9));
+    Data.setUint8(0, MessageType.MouseDoubleClick);
+    Data.setUint16(1, coord.x, true);
+    Data.setUint16(3, coord.y, true);
+    Data.setInt16(5, delta.x, true);
+    Data.setInt16(7, delta.y, true);
+	console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
+	//console.log('send data -->>>>> move ');
+    sendInputData(Data.buffer);
 	
 }
 async function mouseover(e)
@@ -411,6 +421,11 @@ async function  mouseMove(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	if (mouse_down === 1)
+	{
+		mouse_down = 0;
+		return ;
+	}
 	//console.log(e);
 	 var x,y;
 	 if(!document.all)
@@ -446,6 +461,7 @@ async function  mouseMove(e)
 	 }
 	 
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	
     let delta = normalizeAndQuantizeSigned(3, 3);
     let Data = new DataView(new ArrayBuffer(9));
     Data.setUint8(0, MessageType.MouseMove);
@@ -453,6 +469,7 @@ async function  mouseMove(e)
     Data.setUint16(3, coord.y, true);
     Data.setInt16(5, delta.x, true);
     Data.setInt16(7, delta.y, true);
+	console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
 	//console.log('send data -->>>>> move ');
     sendInputData(Data.buffer);
 }
@@ -498,8 +515,17 @@ async function  mouseClick(e)
 		 return;
 	 }
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
-	 //console.log('==================================================');
-	action_mouse(0, coord.x, coord.y, e.keyCode);
+	
+    let delta = normalizeAndQuantizeSigned(3, 3);
+    let Data = new DataView(new ArrayBuffer(9));
+    Data.setUint8(0, MessageType.MouseMove);
+    Data.setUint16(1, coord.x, true);
+    Data.setUint16(3, coord.y, true);
+    Data.setInt16(5, delta.x, true);
+    Data.setInt16(7, delta.y, true);
+	console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
+	//console.log('send data -->>>>> move ');
+    sendInputData(Data.buffer);
 }
 
 
@@ -518,7 +544,7 @@ async function  mouseDown(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	
+	mouse_down = 1;
 	 let coord = normalizeAndQuantizeUnsigned(x, y);
     let Data = new DataView(new ArrayBuffer(6));
     Data.setUint8(0, MessageType.MouseDown);
@@ -536,6 +562,7 @@ async function  mouseUp(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	mouse_down = 0;
 	 var x,y;
 	 if(!document.all){
 	 
@@ -545,7 +572,35 @@ async function  mouseUp(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	 let coord = normalizeAndQuantizeUnsigned(x, y);
+	 
+	 
+	  var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	 
+	 
+	 
+	 
+	 
+	 let coord = normalizeAndQuantizeUnsigned(clientx, clienty);;
     let Data = new DataView(new ArrayBuffer(6));
     Data.setUint8(0, MessageType.MouseUp);
     Data.setUint8(1, e.button);
@@ -712,7 +767,7 @@ async function run()
 		displayNameSet = false;
 		displayName = randomName();
 	}
-
+		//displayName = 'chensong';
 	// Get current device info.
 	const device = deviceInfo();
 
