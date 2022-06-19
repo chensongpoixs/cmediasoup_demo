@@ -14,7 +14,7 @@ win 地址：https://npm.taobao.org/mirrors/node/v10.0.0/
 
 npm install --no-fund
 
-
+v13.12.0
 
 
 openssl req -new -newkey rsa:1024 -x509 -sha256 -days 3650 -nodes -out fullchain.pem -keyout privkey.pem
@@ -42,6 +42,11 @@ nvm install v10.16.3
  3.npm更新
 
 npm -g install npm@6.13.4
+
+
+Ubuntu18.4
+# 源的的版本问题 非常重要的 在js中
+npm -g install npm@6.4.1
 4.修改npm下载镜像
 
 npm config set registry "http://registry.npm.taobao.org/"
@@ -61,6 +66,10 @@ npm install mediasoup@3.4.8 --> 这个版本
 
 https://github.com/versatica/mediasoup-demo
 ]
+
+
+淘宝镜像地址
+# npm install -g cnpm --registry=https://registry.npmmirror.com
 
 二：使用openssl生成免费证书
 
