@@ -264,6 +264,7 @@ export default class RoomClient
 
 	async join()
 	{
+		
 		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
 
 		this._protoo = new protooClient.Peer(protooTransport);
@@ -278,7 +279,7 @@ export default class RoomClient
 			store.dispatch(requestActions.notify(
 				{
 					type : 'error',
-					text : 'WebSocket connection failed'
+					text : this._protooUrl
 				}));
 		});
 
@@ -287,7 +288,7 @@ export default class RoomClient
 			store.dispatch(requestActions.notify(
 				{
 					type : 'error',
-					text : 'WebSocket disconnected'
+					text :  this._protooUrl
 				}));
 
 			// Close mediasoup Transports.

@@ -410,6 +410,7 @@ async function  keydown(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	console.log(e);
 	sendInputData(new Uint8Array([MessageType.KeyDown, getKeyCode(e), e.repeat]).buffer);
 	 
 }
@@ -421,11 +422,13 @@ async function  mouseMove(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	/*
 	if (mouse_down === 1)
 	{
 		mouse_down = 0;
 		return ;
 	}
+	*/
 	//console.log(e);
 	 var x,y;
 	 if(!document.all)
@@ -462,7 +465,7 @@ async function  mouseMove(e)
 	 
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
 	
-    let delta = normalizeAndQuantizeSigned(3, 3);
+    let delta = normalizeAndQuantizeSigned(90, 90);
     let Data = new DataView(new ArrayBuffer(9));
     Data.setUint8(0, MessageType.MouseMove);
     Data.setUint16(1, coord.x, true);

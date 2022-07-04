@@ -6,6 +6,6 @@ if (window.location.hostname === 'test.mediasoup.org')
 export function getProtooUrl({ roomId, peerId })
 {
 	const hostname = window.location.hostname;
-
+	//const hostname = '192.168.2.202'; // window.location.hostname;
 	return `wss://${hostname}:${protooPort}/?roomId=${roomId}&peerId=${peerId}`;
 }

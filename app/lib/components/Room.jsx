@@ -138,9 +138,10 @@ class Room extends React.Component
 			</Appear>
 		);
 	}
-
+	// peer video play -----
 	componentDidMount()
 	{
+		console.log('[Room][componentDidMount] -->>>> ');
 		const { roomClient }	= this.props;
 
 		roomClient.join();

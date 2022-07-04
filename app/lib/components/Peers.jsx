@@ -39,7 +39,7 @@ Peers.propTypes =
 const mapStateToProps = (state) =>
 {
 	const peersArray = Object.values(state.peers);
-
+	//console.log('[mapStateToProps]');
 	return {
 		peers           : peersArray,
 		activeSpeakerId : state.room.activeSpeakerId
@@ -53,6 +53,7 @@ const PeersContainer = connect(
 	{
 		areStatesEqual : (next, prev) =>
 		{
+			//console.log('[PeersContainer][connect]-> ');
 			return (
 				prev.peers === next.peers &&
 				prev.room.activeSpeakerId === next.room.activeSpeakerId

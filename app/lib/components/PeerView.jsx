@@ -56,6 +56,7 @@ export default class PeerView extends React.Component
 
 	render()
 	{
+		//console.info('[PeerView][render][()]');
 		const {
 			isMe,
 			peer,
@@ -481,8 +482,9 @@ export default class PeerView extends React.Component
 
 	componentDidMount()
 	{
+		console.log('[componentDidMount]=====> videotrack --> videoElem.onplay = ==============================='  );
 		const { audioTrack, videoTrack } = this.props;
-
+		 
 		this._setTracks(audioTrack, videoTrack);
 	}
 
@@ -506,6 +508,7 @@ export default class PeerView extends React.Component
 
 	componentWillUpdate()
 	{
+		console.log('[componentWillUpdate]=====> videotrack --> videoElem.onplay = '  );
 		const {
 			isMe,
 			audioTrack,
