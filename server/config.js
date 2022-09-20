@@ -67,12 +67,7 @@ module.exports =
 		{
 			mediaCodecs :
 			[
-				{
-					kind      : 'audio',
-					mimeType  : 'audio/opus',
-					clockRate : 48000,
-					channels  : 2
-				}, 
+				
 				{
 					kind       : 'video',
 					mimeType   : 'video/h264',
@@ -130,7 +125,7 @@ module.exports =
 			[
 				{
 					ip          :  '0.0.0.0',
-					announcedIp : '192.168.3.185'
+					announcedIp : '192.168.1.73'
 				}
 			],
 			initialAvailableOutgoingBitrate : 1000000,
@@ -147,7 +142,7 @@ module.exports =
 			listenIp :
 			{
 				ip          : '0.0.0.0',
-				announcedIp : '192.168.3.185'
+				announcedIp : '192.168.1.73'
 			},
 			maxSctpMessageSize : 262144
 		}

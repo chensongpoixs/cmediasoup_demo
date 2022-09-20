@@ -172,7 +172,7 @@ class Me extends React.Component
 	componentDidMount()
 	{
 		this._mounted = true;
-
+		
 		setTimeout(() =>
 		{
 			if (!this._mounted || this.props.me.displayNameSet)

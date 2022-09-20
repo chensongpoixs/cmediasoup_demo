@@ -17,7 +17,7 @@ const peers = (state = initialState, action) =>
 		case 'ADD_PEER':
 		{
 			const { peer } = action.payload;
-
+			console.log('[add_peer] ---> case ^_^ ');
 			return { ...state, [peer.id]: peer };
 		}
 

@@ -97,7 +97,7 @@ const MessageType = {
     MouseUp: 73,
     MouseMove: 74,
     MouseWheel: 75,
-
+	MouseDoubleClick: 76,
     // Touch Input Messages. Range = 80..89.
     TouchStart: 80,
     TouchEnd: 81,
@@ -128,11 +128,22 @@ const SpecialKeyCodes = {
 
 // We want to be able to differentiate between left and right versions of some
 // keys.
-function getKeyCode(e) {
-    if (e.keyCode === SpecialKeyCodes.Shift && e.code === 'ShiftRight') return SpecialKeyCodes.RightShift;
-    else if (e.keyCode === SpecialKeyCodes.Control && e.code === 'ControlRight') return SpecialKeyCodes.RightControl;
-    else if (e.keyCode === SpecialKeyCodes.Alt && e.code === 'AltRight') return SpecialKeyCodes.RightAlt;
-    else return e.keyCode;
+function getKeyCode(e) 
+{
+	console.log('====[keycode = ' + e.keyCode + "]===");
+    if (e.keyCode === SpecialKeyCodes.Shift && e.code === 'ShiftRight') 
+	{
+		return SpecialKeyCodes.RightShift;
+	}
+    else if (e.keyCode === SpecialKeyCodes.Control && e.code === 'ControlRight') 
+	{
+		return SpecialKeyCodes.RightControl;
+	}
+    else if (e.keyCode === SpecialKeyCodes.Alt && e.code === 'AltRight') 
+	{
+		return SpecialKeyCodes.RightAlt;
+	}
+    return e.keyCode;
 }
 
 
@@ -261,8 +272,17 @@ async function dblclick(e)
 		 return;
 	 }
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
-	 //console.log('==================================================');
-	action_mouse(0, coord.x, coord.y, e.keyCode);
+	
+    let delta = normalizeAndQuantizeSigned(3, 3);
+    let Data = new DataView(new ArrayBuffer(9));
+    Data.setUint8(0, MessageType.MouseDoubleClick);
+    Data.setUint16(1, coord.x, true);
+    Data.setUint16(3, coord.y, true);
+    Data.setInt16(5, delta.x, true);
+    Data.setInt16(7, delta.y, true);
+	console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
+	//console.log('send data -->>>>> move ');
+    sendInputData(Data.buffer);
 	
 }
 async function mouseover(e)
@@ -446,6 +466,7 @@ async function  mouseMove(e)
 	 }
 	 
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
+	
     let delta = normalizeAndQuantizeSigned(3, 3);
     let Data = new DataView(new ArrayBuffer(9));
     Data.setUint8(0, MessageType.MouseMove);
@@ -453,6 +474,7 @@ async function  mouseMove(e)
     Data.setUint16(3, coord.y, true);
     Data.setInt16(5, delta.x, true);
     Data.setInt16(7, delta.y, true);
+	//console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
 	//console.log('send data -->>>>> move ');
     sendInputData(Data.buffer);
 }
@@ -498,8 +520,17 @@ async function  mouseClick(e)
 		 return;
 	 }
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
-	 //console.log('==================================================');
-	action_mouse(0, coord.x, coord.y, e.keyCode);
+	
+    let delta = normalizeAndQuantizeSigned(3, 3);
+    let Data = new DataView(new ArrayBuffer(9));
+    Data.setUint8(0, MessageType.MouseMove);
+    Data.setUint16(1, coord.x, true);
+    Data.setUint16(3, coord.y, true);
+    Data.setInt16(5, delta.x, true);
+    Data.setInt16(7, delta.y, true);
+	console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
+	//console.log('send data -->>>>> move ');
+    sendInputData(Data.buffer);
 }
 
 
@@ -712,7 +743,7 @@ async function run()
 		displayNameSet = false;
 		displayName = randomName();
 	}
-
+		//displayName = 'chensong';
 	// Get current device info.
 	const device = deviceInfo();
 

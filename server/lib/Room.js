@@ -864,7 +864,16 @@ class Room extends EventEmitter
 
 				// Mark the new Peer as joined.
 				peer.data.joined = true;
-
+				
+				
+				// Create DataConsumers for bot DataProducer.
+				this._createDataConsumer(
+					{
+						dataConsumerPeer : peer,
+						dataProducerPeer : null,
+						dataProducer     : this._bot.dataProducer
+					});
+					
 				for (const joinedPeer of joinedPeers)
 				{
 					// Create Consumers for existing Producers.
@@ -893,13 +902,7 @@ class Room extends EventEmitter
 					}
 				}
 
-				// Create DataConsumers for bot DataProducer.
-				this._createDataConsumer(
-					{
-						dataConsumerPeer : peer,
-						dataProducerPeer : null,
-						dataProducer     : this._bot.dataProducer
-					});
+				
 
 				// Notify the new Peer to all other Peers.
 				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
@@ -1036,6 +1039,7 @@ class Room extends EventEmitter
 
 			case 'produce':
 			{
+				//logger.error(' produce joined = ' + peer.data.joined);
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');

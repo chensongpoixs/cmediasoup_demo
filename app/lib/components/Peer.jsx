@@ -8,6 +8,7 @@ import PeerView from './PeerView';
 
 const Peer = (props) =>
 {
+	//console.log('[Peer]=====+++++++++++');
 	const {
 		roomClient,
 		peer,

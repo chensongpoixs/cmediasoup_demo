@@ -12,4 +12,4 @@ set Dir=%~dp0%server%\
 @ping -n 1 127.0.0.1>nul
 start "mediasoupserver" /D %Dir% node  %Dir%server.js 
 
-REM pause
+:: pause

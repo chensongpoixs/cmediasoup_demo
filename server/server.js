@@ -516,7 +516,7 @@ async function runHttpsServer()
 	httpServer = http.createServer(expressApp);
 	await new Promise((resolve) =>
 	{
-		httpServer.listen(8888, '0.0.0.0', resolve);
+		httpServer.listen(Number(config.http.listenPort), config.http.listenIp, resolve);
 	});
 }
 
