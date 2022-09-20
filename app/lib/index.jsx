@@ -158,6 +158,7 @@ let playerElementClientRect = undefined;
 let normalizeAndQuantizeUnsigned = undefined;
 let normalizeAndQuantizeSigned = undefined;
 var load = 0;
+var mouse_down = 0;
 function setupNormalizeAndQuantize() 
 {
 	let videoElement = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
@@ -420,6 +421,7 @@ async function  keydown(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	console.log(e);
 	sendInputData(new Uint8Array([MessageType.KeyDown, getKeyCode(e), e.repeat]).buffer);
 	 
 }
@@ -431,6 +433,13 @@ async function  mouseMove(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	/*
+	if (mouse_down === 1)
+	{
+		mouse_down = 0;
+		return ;
+	}
+	*/
 	//console.log(e);
 	 var x,y;
 	 if(!document.all)
@@ -467,14 +476,22 @@ async function  mouseMove(e)
 	 
 	let coord = normalizeAndQuantizeUnsigned(clientx, clienty);
 	
-    let delta = normalizeAndQuantizeSigned(3, 3);
+//<<<<<<< HEAD
+  //  let delta = normalizeAndQuantizeSigned(3, 3);
+//=======
+    let delta = normalizeAndQuantizeSigned(90, 90);
+//>>>>>>> 6ffe39eafc8c01235ec8379cdcea7598899f8ab8
     let Data = new DataView(new ArrayBuffer(9));
     Data.setUint8(0, MessageType.MouseMove);
     Data.setUint16(1, coord.x, true);
     Data.setUint16(3, coord.y, true);
     Data.setInt16(5, delta.x, true);
     Data.setInt16(7, delta.y, true);
+//<<<<<<< HEAD
 	//console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
+//=======
+	console.log("send data -->>>>> move  x = " + coord.x + ", y = " + coord.y + ", deltax = " + delta.x + ", delta.y = " + delta.y);
+//>>>>>>> 6ffe39eafc8c01235ec8379cdcea7598899f8ab8
 	//console.log('send data -->>>>> move ');
     sendInputData(Data.buffer);
 }
@@ -549,7 +566,7 @@ async function  mouseDown(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	
+	mouse_down = 1;
 	 let coord = normalizeAndQuantizeUnsigned(x, y);
     let Data = new DataView(new ArrayBuffer(6));
     Data.setUint8(0, MessageType.MouseDown);
@@ -567,6 +584,7 @@ async function  mouseUp(e)
 	{
 		setupNormalizeAndQuantize();
 	}
+	mouse_down = 0;
 	 var x,y;
 	 if(!document.all){
 	 
@@ -576,7 +594,35 @@ async function  mouseUp(e)
 	  x=document.body.scrollLeft+event.clientX;
 	  y=document.body.scrollTop+event.clientY;
 	 }
-	 let coord = normalizeAndQuantizeUnsigned(x, y);
+	 
+	 
+	  var a = document.getElementById("mediasoup-demo-app-container").getElementsByClassName("peer-container")[0];
+	// console.log( a );
+	 //console.log('x = ' + x + ', y = ' + y +', clientwidth = ' +a.clientWidth + ', clientHeight ='+ a.clientHeight +' offsetLeft = ' + a.offsetLeft + ', offsetHeight ' + a.offsetHeight);
+	 var clientx = 0;
+	 var clienty = 0;
+	// console.log('clientLeft = ' + e.clientLeft + ', clientTop = ' + e.clientTop);
+	// var scrollx = a.offsetLeft  + a.clientLeft;
+	// var scrolly = a.offsetTop + a.clientTop;
+	 var new_width = a.offsetWidth + a.offsetLeft;
+	 var new_height = (a.offsetHeight + a.offsetTop);
+	 if ((x >= a.offsetLeft && x <= new_width) && ((y >= a.offsetTop ) && (y <= new_height)) )
+	 {
+		 clientx = x - a.offsetLeft;
+		 clienty = y - a.offsetTop;
+		// console.log('+++++++++++++++new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+	 }
+	 else 
+	 { 
+		 //console.log('-------------new_width = ' +new_width+', new_height= ' +new_height+', a.offsetLeft = '+a.offsetLeft+ ', a.offsetTop'+a.offsetTop+', clientx = ' + clientx + ', clienty = ' + clienty);
+		 return;
+	 }
+	 
+	 
+	 
+	 
+	 
+	 let coord = normalizeAndQuantizeUnsigned(clientx, clienty);;
     let Data = new DataView(new ArrayBuffer(6));
     Data.setUint8(0, MessageType.MouseUp);
     Data.setUint8(1, e.button);
