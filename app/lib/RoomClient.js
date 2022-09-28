@@ -322,7 +322,37 @@ export default class RoomClient
 			logger.debug(
 				'proto "request" event [method:%s, data:%o]',
 				request.method, request.data);
+			if (this._recvTransport)
+			{
+				logger.debug('===============getStats================');
+				const rtc_status = await  this._recvTransport.getStats() ;
+				
+				rtc_status.forEach(report => {
+					//logger.debug(`Report: ${report.type} ID:  ${report.id}  Timestamp:  ${report.timeStamp} `);
+					if (report.type === 'inbound-rtp')
+					{
+						 Object.keys(report).forEach(stateName => {
+							// if (stateName !== "id" && stateName != "timestamp" && stateName !== "type") 
+							// {
+							// 	logger.debug(`${stateName}:  ${report[stateName]} `);
+							// }
+							// stateName
+							if ('framesReceived' === stateName)
+							{
+								// stateName 这个值大于0 说明就有视频了
+							}
+						});
+					}
+					
+ 
+				});
+				
+				logger.debug(rtc_status);
 
+				
+				
+				logger.debug('===============getStats================');
+			}
 			switch (request.method)
 			{
 				case 'newConsumer':
