@@ -182,10 +182,10 @@ openssl x509 -req -days 365 -in client.csr -signkey client.key -out client.crt
 
 
 
-
-
-
-
+```
+ openssl genrsa > privkey.pem
+   openssl req -new -x509 -key  privkey.pem > fullchain.pem
+```
 
 
 ## mediasoup 信令交换流程
